@@ -5,12 +5,15 @@ import java.util.concurrent.ThreadFactory;
 
 class MysqlDemo {
 
-    private static Connection getConnection(final String baseUrl, final String User, final String password) {
+    private static String DBNAME = "mysqldemo";
+    private static String TABLE_NAME = "employees";
+
+    private static Connection getConnection(final String baseUrl, final String user, final String password) {
         Connection con = null;
         try {
-            con = DriverManager.getConnection(baseUrl, User, password);
+            con = DriverManager.getConnection(baseUrl, user, password);
         } catch (SQLException sqe) {
-            System.err.println("Unable to connect to the database");
+            System.err.println("Unable to connect to the database using: " + baseUrl + " (" + user + "/" + password + ")");
             System.err.println(sqe);
             System.exit(1);
         }
@@ -59,8 +62,8 @@ class MysqlDemo {
         }
     }
 
-    private static void createEmployees(Connection conn) throws SQLException {
-        String sqlCreate = "CREATE TABLE IF NOT EXISTS employees" + "  (id    integer not null,"
+    private static void createTable(Connection conn) throws SQLException {
+        String sqlCreate = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "  (id    integer not null,"
                 + "   first_name varchar(255) not null, " + "   last_name varchar(255) not null,"
                 + "   email_address varchar(255) not null, primary key(id) " + ")";
 
@@ -70,7 +73,8 @@ class MysqlDemo {
 
     private static void addEmployee(Connection conn, int id, String firstName, String lastName, String eMail) {
         // the mysql insert statement
-        String query = " insert into employees (id, first_name, last_name, email_address)" + " values (?, ?, ?, ?)";
+        String query = " insert into " + TABLE_NAME + " (id, first_name, last_name, email_address)"
+                + " values (?, ?, ?, ?)";
         try {
             // create the mysql insert preparedstatement
             PreparedStatement preparedStmt = conn.prepareStatement(query);
@@ -89,7 +93,7 @@ class MysqlDemo {
 
     private static void deleteEmployee(Connection conn, int id) {
         // the mysql insert statement
-        String query = " delete from employees where id = ?";
+        String query = " delete from " + TABLE_NAME + " where id = ?";
         try {
             // create the mysql insert preparedstatement
             PreparedStatement preparedStmt = conn.prepareStatement(query);
@@ -106,7 +110,7 @@ class MysqlDemo {
         System.out.println("---");
         try {
             final Statement stmt = conn.createStatement();
-            final ResultSet rs = stmt.executeQuery("select * from employees");
+            final ResultSet rs = stmt.executeQuery("select * from " + TABLE_NAME);
             while (rs.next())
                 System.out.println(
                         rs.getInt(1) + "  " + rs.getString(2) + "  " + rs.getString(3) + "  " + rs.getString(4));
@@ -117,7 +121,7 @@ class MysqlDemo {
     }
 
     public static void main(final String args[]) {
-        
+
         String dbUserName;
         String dbPassword;
         String dbHost;
@@ -129,7 +133,8 @@ class MysqlDemo {
             dbHost = System.getenv("MYSQL_HOST");
             dbPort = System.getenv("MYSQL_PORT");
             if (dbUserName == null || dbPassword == null || dbHost == null || dbPort == null) {
-                System.out.println("Usage: " + MysqlDemo.class.getName() + " dbusername password host port");
+                System.out.println("Usage: " + MysqlDemo.class.getName() + " dbusername password host port ("
+                        + dbUserName + "," + dbPassword + "," + dbHost + "," + dbPort + ")");
                 System.exit(1);
             }
         } else {
@@ -141,15 +146,15 @@ class MysqlDemo {
         final Connection conn = getConnection("jdbc:mysql://" + dbHost + ":" + dbPort, dbUserName, dbPassword);
 
         try {
-            createDatabase(conn, args[0]);
-            createEmployees(conn);
+            createDatabase(conn, DBNAME);
+            createTable(conn);
             addEmployee(conn, 1, "David", "BenGurion", "dbg@negev.il");
             addEmployee(conn, 2, "Theodore", "Herzl", "ted@basil.eu");
             addEmployee(conn, 3, "Moshe", "Dayan", "moshe@dayan.co.il");
             dumpEmployees(conn);
             deleteEmployee(conn, 3);
             dumpEmployees(conn);
-            deleteDatabase(conn, args[0]);
+            deleteDatabase(conn, DBNAME);
         } catch (final Exception e) {
             System.out.println(e);
         } finally {
