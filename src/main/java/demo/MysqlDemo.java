@@ -92,6 +92,25 @@ class MysqlDemo {
         }
     }
 
+    private static void updateEmployee(Connection conn, int id, String firstName, String lastName, String eMail) {
+        // the mysql insert statement
+        String query = " update " + TABLE_NAME + " set first_name = ?, last_name = ?, email_address = ? where id = ?";
+        try {
+            // create the mysql insert preparedstatement
+            PreparedStatement preparedStmt = conn.prepareStatement(query);
+            preparedStmt.setString(1, firstName);
+            preparedStmt.setString(2, lastName);
+            preparedStmt.setString(3, eMail);
+            preparedStmt.setInt(4, id);
+
+            // execute the preparedstatement
+            preparedStmt.execute();
+        } catch (SQLException sqe) {
+            System.err.println("Failed to update record " + id);
+            System.err.println(sqe);
+        }
+    }
+
     private static void deleteEmployee(Connection conn, int id) {
         // the mysql insert statement
         String query = " delete from " + TABLE_NAME + " where id = ?";
@@ -130,13 +149,14 @@ class MysqlDemo {
 
         if (args.length != 4) {
             dbUserName = System.getenv("MYSQL_USER");
-            dbPassword = System.getenv("MYSQL_ROOT_PASSWORD");
+            if (dbUserName == null) {
+                dbUserName = "root";
+            }
+            dbPassword = System.getenv("MYSQL_PASSWORD");
             dbHost = System.getenv("MYSQL_HOST");
             dbPort = System.getenv("MYSQL_PORT");
-            if (dbUserName == null || dbPassword == null || dbHost == null || dbPort == null) {
-                System.out.println("Usage: " + MysqlDemo.class.getName() + " dbusername password host port ("
-                        + dbUserName + "," + dbPassword + "," + dbHost + "," + dbPort + ")");
-                System.exit(1);
+            if (dbPort == null) {
+                dbPort = "3306";
             }
         } else {
             dbUserName = args[0];
@@ -144,6 +164,15 @@ class MysqlDemo {
             dbHost = args[2];
             dbPort = args[3];
         }
+        if (dbPassword == null || dbHost == null) {
+            System.out.println("database password or hostname not provided.");
+            System.out.println("Usage: " + MysqlDemo.class.getName() + " dbusername password host port (" + dbUserName
+                    + "," + dbPassword + "," + dbHost + "," + dbPort + ")");
+            System.out.println(
+                    "Alternatively, set environment variables: MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT");
+            System.exit(1);
+        }
+
         final Connection conn = getConnection("jdbc:mysql://" + dbHost + ":" + dbPort, dbUserName, dbPassword);
 
         try {
@@ -153,6 +182,7 @@ class MysqlDemo {
             addEmployee(conn, 2, "Theodore", "Herzl", "ted@basil.eu");
             addEmployee(conn, 3, "Moshe", "Dayan", "moshe@dayan.co.il");
             dumpEmployees(conn);
+            updateEmployee(conn, 2, "Chaim", "Weizmann", "chaimg@gov.il");
             deleteEmployee(conn, 3);
             dumpEmployees(conn);
             deleteDatabase(conn, DBNAME);
