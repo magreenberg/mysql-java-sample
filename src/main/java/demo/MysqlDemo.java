@@ -13,7 +13,8 @@ class MysqlDemo {
         try {
             con = DriverManager.getConnection(baseUrl, user, password);
         } catch (SQLException sqe) {
-            System.err.println("Unable to connect to the database using: " + baseUrl + " (" + user + "/" + password + ")");
+            System.err.println(
+                    "Unable to connect to the database using: " + baseUrl + " (" + user + "/" + password + ")");
             System.err.println(sqe);
             System.exit(1);
         }
@@ -155,6 +156,16 @@ class MysqlDemo {
             deleteEmployee(conn, 3);
             dumpEmployees(conn);
             deleteDatabase(conn, DBNAME);
+            System.out.println(("All database CRUD operations completed successfully!"));
+            System.out.println(("Press \"^c\" to exit."));
+            try {
+                Object obj = new Object();
+                synchronized (obj) {
+                    obj.wait();
+                }
+            } catch (InterruptedException e) {
+                System.exit(0);
+            }
         } catch (final Exception e) {
             System.out.println(e);
         } finally {
