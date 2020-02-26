@@ -3,33 +3,14 @@
   <groupId>demo</groupId>
   <artifactId>mysqldemo</artifactId>
   <version>1</version>
+
+  <name>Java/MySQL DB Example</name>
+  <description>Java/MySQL DB Example for OpenShift Java S2I</description>
+
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
-  <build>
-    <sourceDirectory>src</sourceDirectory>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <configuration>
-            <archive>
-              <manifest>
-                <addClasspath>true</addClasspath>
-                <classpathPrefix>lib/</classpathPrefix>
-                <mainClass>demo.MysqlDemo</mainClass>
-              </manifest>
-              <manifestEntries>
-                <Class-Path>.</Class-Path>
-              </manifestEntries>
-            </archive>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
   <dependencies>
     <dependency>
       <groupId>mysql</groupId>
@@ -40,4 +21,40 @@
       -->
     </dependency>
   </dependencies>
+  <build>
+    <finalName>MysqlDemo</finalName>
+    <plugins>
+
+      <!-- Maven Assembly Plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4.1</version>
+        <configuration>
+          <!-- get all project dependencies -->
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <!-- MainClass in mainfest make a executable jar -->
+          <archive>
+            <manifest>
+              <mainClass>demo.MysqlDemo</mainClass>
+            </manifest>
+          </archive>
+
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <!-- bind to the packaging phase -->
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
 </project>
